@@ -70,11 +70,11 @@ class ImpalaWapper(object):
 
     def get(self, query, **kwargs):
         rows = self.query(query, **kwargs)
-        _check_one(rows)
+        return _check_one(rows)
 
     def one(self, query, **kwargs):
         rows = self.onelist(query, **kwargs)
-        _check_one(rows)
+        return _check_one(rows)
 
     def query(self, query, **kwargs):
         keys, values = self.raw_query(query, **kwargs)
@@ -94,13 +94,30 @@ def main():
     import json
     c = ImpalaWapper("192.168.1.97")
     while 1:
-        tmp = raw_input("impala>>")
-        cmd, sql = tmp.split(" ", 1)
+        tmp = raw_input("impala>>").strip()
+        if tmp in ["q", "quit", "bye"]:
+            print "exit client"
+            break
+        if not tmp:
+            print "Input error"
+            continue
+        cmd = "query"
+        try:
+            cmd, sql = tmp.split(" ", 1)
+        except ValueError, e:
+            sql = tmp
+
+        if cmd not in dir(c):
+            cmd = "query"
+            sql = tmp
         try:
             data = eval("c.{0}(\"{1}\")".format(cmd, sql))
         except impala.error.HiveServer2Error, e:
             print "[error], %s" % str(e)
             print tmp  
+        except Exception, e:
+            print str(e)
+            continue
         try:
             print json.dumps(data, indent=4, ensure_ascii=False)
         except Exception, e:
