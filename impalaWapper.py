@@ -91,15 +91,20 @@ class ImpalaWapper(object):
         self.cursor.execute(query, parameters=kwargs)
 
 def main():
+    import json
     c = ImpalaWapper("192.168.1.97")
     while 1:
         tmp = raw_input("impala>>")
+        cmd, sql = tmp.split(" ", 1)
         try:
-            cmd, sql = tmp.split(" ", 1)
-            print eval("c.{0}(\"{1}\")".format(cmd, sql))
+            data = eval("c.{0}(\"{1}\")".format(cmd, sql))
         except impala.error.HiveServer2Error, e:
             print "[error], %s" % str(e)
             print tmp  
+        try:
+            print json.dumps(data, indent=4, ensure_ascii=False)
+        except Exception, e:
+            print e, data
 
 if __name__ == "__main__":
     main()
