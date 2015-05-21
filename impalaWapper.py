@@ -89,17 +89,25 @@ class ImpalaWapper(object):
 
     def execute(self, query, **kwargs):
         self.cursor.execute(query, parameters=kwargs)
+        return None
 
 def main():
     import json
     c = ImpalaWapper("192.168.1.97")
     while 1:
         tmp = raw_input("impala>>").strip()
-        if tmp in ["q", "quit", "bye"]:
+        if not tmp:
+            continue
+        if tmp.lower() in ["q", "quit", "bye"]:
             print "exit client"
             break
-        if not tmp:
-            print "Input error"
+        elif tmp.lower() in ["help", "h"]:
+            print "COMMAND "
+            print "[search] execute get one onelist oneset query raw_query "
+            print ">>> query show tables <--> show tables"
+            print "[help] help"
+            print "[quit] quit bye"
+            print "[defult] query"
             continue
         cmd = "query"
         try:
@@ -111,15 +119,21 @@ def main():
             cmd = "query"
             sql = tmp
         try:
+            print cmd, sql
             data = eval("c.{0}(\"{1}\")".format(cmd, sql))
         except impala.error.HiveServer2Error, e:
             print "[error], %s" % str(e)
             print tmp  
+            continue
         except Exception, e:
             print str(e)
             continue
+        if data is None:
+            continue
+
         try:
-            print json.dumps(data, indent=4, ensure_ascii=False)
+            #print json.dumps(data, indent=4, ensure_ascii=False)
+            print json.dumps(data, ensure_ascii=False)
         except Exception, e:
             print e, data
 
